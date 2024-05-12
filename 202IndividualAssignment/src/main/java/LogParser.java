@@ -1,4 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,14 +12,15 @@ public class LogParser {
     private static final String APM_JSON = "apm.json";
     private static final String APPLICATION_JSON = "application.json";
     private static final String REQUEST_JSON = "request.json";
+    private static final String INPUT_FILE_NAME = "input.txt";
 
     public static void main(String[] args) throws IOException {
-        if (args.length < 2 || !"--file".equals(args[0])) {
-            System.out.println("Usage: --file <filename.txt>");
-            return;
-        }
+        // if (args.length < 2 || !"--file".equals(args[0])) {
+        //     System.out.println("Usage: --file <filename.txt>");
+        //     return;
+        // }
 
-        String fileName = args[1];
+        String fileName = INPUT_FILE_NAME;
         Map<String, List<Integer>> apmMetrics = new HashMap<>();
         Map<String, Integer> appLogs = new HashMap<>();
         Map<String, RequestData> requestLogs = new HashMap<>();
@@ -46,7 +49,7 @@ public class LogParser {
         writeToJsonFile(REQUEST_JSON, aggregateRequestLogs(requestLogs));
     }
 
-    private static Map<String, String> parseLine(String line) {
+    static Map<String, String> parseLine(String line) {
         return Arrays.stream(line.split(" "))
                 .map(kv -> kv.split("="))
                 .filter(kv -> kv.length == 2)
@@ -55,10 +58,11 @@ public class LogParser {
 
     private static void writeToJsonFile(String fileName, Object data) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.writeValue(Paths.get(fileName).toFile(), data);
     }
 
-    private static Map<String, Map<String, Double>> aggregateApmMetrics(Map<String, List<Integer>> metrics) {
+    static Map<String, Map<String, Double>> aggregateApmMetrics(Map<String, List<Integer>> metrics) {
         Map<String, Map<String, Double>> aggregated = new HashMap<>();
         metrics.forEach((key, values) -> {
             Collections.sort(values);
